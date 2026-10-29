@@ -496,7 +496,7 @@ function load(k,d){try{var v=localStorage.getItem(LS+k);return v?JSON.parse(v):d
 function save(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}
 
 var S={
-  cfg:load('cfg',{url:'https://script.google.com/macros/s/AKfycbzIPl4FPhcnMBtCahcL3IY49-qBUXww9TMF31uh9M8571GEv8_SNRIFqdP903brnsHDdA/exec',key:'',login:''}),
+  cfg:load('cfg',{url:'',key:'',login:''}),
   trades:load('trades',{}),accounts:load('accounts',[]),lastSync:load('lastSync',0),
   notes:load('notes',{}),goals:load('goals',{dt:0,dl:0,mt:0,mx:0,fl:0}),
   demo:load('demo',false),ui:load('ui',{theme:'auto',unit:'$'}),
