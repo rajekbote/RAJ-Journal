@@ -734,16 +734,20 @@ function renderBanners(){
   var fl=goal$('fl');if(a&&fl>0&&a.floating<=-fl)A.push({c:'red',p:0,h:'⚠️ Floating '+money(a.floating,true)+' — past your −'+goalLbl('fl')+' alert'});
   var dl=goal$('dl');
   if(t&&t.n>maxTrades())A.push({c:'red',p:2,h:'⚡ '+t.n+' trades today — over your limit of '+maxTrades()});
-  if(S.ui.news.on){var now=Date.now()/1000,nx=null,nb=newsByDay(),rec=[];
-    for(var dkk in nb)nb[dkk].forEach(function(n){if(n.imp!==3||n.allDay)return;
-      if(n.utc>now&&n.utc-now<86400&&(!nx||n.utc<nx.utc))nx=n;
-      else if(n.utc<=now&&now-n.utc<=6*3600)rec.push(n)});
-    rec.sort(function(a,b){return b.utc-a.utc});
-    // released in the last 6h (with gold bias)
-    rec.slice(0,3).forEach(function(n,i){var g=goldBias(n);
-      A.push({nw:1,ns:now-n.utc<1800?0:2,c:'gold',d:dk(new Date(n.utc*1000)),h:(g?gbChip(g)+' ':'<span class="ib i3">HIGH</span> ')+esc(n.cur)+' '+esc(n.name)+' · '+inTxt(n.utc-now)+(n.act?' · A '+esc(n.act)+(n.fc?' / F '+esc(n.fc):''):(n.fc||n.prev)?' · waiting for result':'')})});
-    // next upcoming
-    if(nx){var soon=nx.utc-now<1800;A.push({nw:1,ns:soon?0:1,c:soon?'red':'gold',d:dk(new Date(nx.utc*1000)),h:'<span class="ib i3">HIGH</span> '+esc(nx.cur)+' '+esc(nx.name)+' — '+inTxt(nx.utc-now)})}}
+  if(S.ui.news.on){var now=Date.now()/1000,nb=newsByDay(),tk=dk(new Date());
+    var hi=function(k){return (nb[k]||[]).filter(function(n){return n.imp===3&&!n.allDay}).sort(function(a,b){return a.utc-b.utc})};
+    var relTxt=function(n){var g=goldBias(n);return (g?gbChip(g)+' ':'<span class="ib i3">HIGH</span> ')+esc(n.cur)+' '+esc(n.name)+' · '+inTxt(n.utc-now)+(n.act?' · A '+esc(n.act)+(n.fc?' / F '+esc(n.fc):''):(n.fc||n.prev)?' · waiting for result':'')};
+    var upTxt=function(n){return '<span class="ib i3">HIGH</span> '+esc(n.cur)+' '+esc(n.name)+' — '+inTxt(n.utc-now)};
+    var L=hi(tk);
+    if(L.length){ // today's high news stay in the header all day
+      var past=L.filter(function(n){return n.utc<=now}),up=L.filter(function(n){return n.utc>now});
+      var fresh=past.filter(function(n){return now-n.utc<1800}).pop();
+      if(fresh)A.push({nw:1,c:'gold',d:tk,h:relTxt(fresh)});
+      else if(up.length)A.push({nw:1,c:up[0].utc-now<1800?'red':'gold',d:tk,h:upTxt(up[0])});
+      else{var nb2=0,ns2=0;past.forEach(function(n){var g=goldBias(n);if(g){if(g.buy)nb2++;else ns2++}});
+        A.push({nw:1,c:'gold',d:tk,h:'All released'+(nb2||ns2?' · '+(nb2?'<span class="gb buy">'+nb2+' BUY ↑</span> ':'')+(ns2?'<span class="gb sell">'+ns2+' SELL ↓</span>':''):' · tap to see results')})}
+    }else{var nx=null;for(var k in nb)hi(k).forEach(function(n){if(n.utc>now&&n.utc-now<86400&&(!nx||n.utc<nx.utc))nx=n});
+      if(nx)A.push({nw:1,c:nx.utc-now<1800?'red':'gold',d:dk(new Date(nx.utc*1000)),h:upTxt(nx)})}}
   // news always first, then red alerts, then the rest
   A.sort(function(x,y){return (y.nw||0)-(x.nw||0)||((x.ns||0)-(y.ns||0))||(x.c==='red'?0:1)-(y.c==='red'?0:1)||(x.p||9)-(y.p||9)});
   var h='';

@@ -1,5 +1,5 @@
 // RAJ Journal — offline cache. Network first for the app (so updates show), cache fallback when offline.
-const CACHE = 'rajj-v24';
+const CACHE = 'rajj-v25';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
