@@ -350,6 +350,24 @@ body.locked{position:fixed;left:0;right:0;overflow:hidden}
 .day .v{font-weight:800}
 .seg button.on{box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .btn{border-radius:13px;box-shadow:0 4px 14px rgba(240,195,90,.22)}
+/* compact hero */
+.hero.hc{padding:14px 16px 12px;border-radius:22px}
+.hc .h1r{display:flex;align-items:flex-end;gap:12px;position:relative;margin-top:6px}
+.hc .big{font-size:32px;margin-top:0;flex:none}
+.hc .hspk{flex:1;min-width:80px;height:38px;color:var(--text)}.hc .hspk svg{width:100%;height:38px;margin:0}
+.hc .hk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px;position:relative}
+.hc .hk>div{background:rgba(127,127,127,.08);border:1px solid var(--line);border-radius:12px;padding:7px 8px;min-width:0}
+.hc .hk span{display:block;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.hc .hk b{display:block;font-size:14px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc .hbw{display:flex;gap:6px;margin-top:6px;position:relative}
+.hc .hbw button{flex:1;display:flex;align-items:center;gap:6px;font-size:12px;padding:7px 9px;border-radius:12px;background:rgba(127,127,127,.08);border:1px solid var(--line);min-width:0;white-space:nowrap}
+.hc .hbw button span{color:var(--muted)}
+.hc .a2{display:flex;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);position:relative}
+.hc .a2>div{flex:1;min-width:0;border-radius:10px;padding:2px 4px}
+.hc .a2 span{display:block;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.hc .a2 b{display:block;font-size:15px;font-weight:800;margin-top:1px}
+.hc .a2 .alert{background:var(--loss-bg);animation:pulse 1.4s infinite}
+.hc .hio{font-size:11.5px;color:var(--muted);margin-top:6px;position:relative}
 /* bigger text */
 html[data-size="lg"] body{zoom:1.1;width:calc(100vw / 1.1)}
 html[data-size="lg"] .card .row{flex-wrap:wrap;row-gap:8px}
@@ -384,18 +402,20 @@ html[data-size="lg"] .tabs{left:calc(12px / 1.1);right:calc(12px / 1.1);max-widt
 
   <!-- CALENDAR -->
   <section class="page on" id="p-cal">
-    <div class="hero">
+    <div class="hero hc">
       <div class="row" style="position:relative">
         <div class="lbl" id="heroLbl">This month</div><div class="sp"></div>
         <span class="chip num" id="heroPct">—</span>
       </div>
-      <div class="big num" id="heroPnl">0.00</div>
-      <div id="heroSpark"></div>
-      <div class="acct">
-        <div><span class="lbl">Balance</span><b class="num" id="aBal">—</b></div>
-        <div><span class="lbl">Equity</span><b class="num" id="aEq">—</b></div>
-        <div id="flBox"><span class="lbl">Floating</span><b class="num" id="aFl">—</b></div>
+      <div class="h1r"><div class="big num" id="heroPnl">0.00</div><div id="heroSpark" class="hspk"></div></div>
+      <div class="hk" id="heroKpi"></div>
+      <div class="hbw" id="heroBW"></div>
+      <div class="a2">
+        <div><span>Balance</span><b class="num" id="aBal">—</b></div>
+        <div><span>Equity</span><b class="num" id="aEq">—</b></div>
+        <div id="flBox"><span>Floating</span><b class="num" id="aFl">—</b></div>
       </div>
+      <div class="hio num" id="heroIO"></div>
     </div>
 
     <div class="card" id="calCard">
@@ -543,7 +563,7 @@ html[data-size="lg"] .tabs{left:calc(12px / 1.1);right:calc(12px / 1.1);max-widt
       </div>
       <p class="mut" style="font-size:12px;margin-top:10px;line-height:1.5">Trades come from your Google Sheet. Notes, tags, checklist, goals, rules and EA names are backed up to your Google Sheet automatically. % return = PnL ÷ (balance at start + deposits in that period).</p>
     </div>
-    <p class="mut" style="text-align:center;font-size:11px;margin:18px 0 6px">RAJ Journal · version 28 · auto-updated from GitHub</p>
+    <p class="mut" style="text-align:center;font-size:11px;margin:18px 0 6px">RAJ Journal · version 29 · auto-updated from GitHub</p>
   </section>
 </div>
 
@@ -823,7 +843,20 @@ function renderHero(P){
   $('heroPnl').textContent=money(pnl,true);$('heroPnl').className='big num '+cls(pnl);
   var p=pctOf(pnl,P.from,addDays(P.to,1));$('heroPct').textContent=p==null?'—':pctS(p,1);$('heroPct').className='chip num '+cls(p||0);
   var col=getComputedStyle(document.documentElement).getPropertyValue(pnl>=0?'--win':'--loss').trim();
-  $('heroSpark').innerHTML=spark(cum,300,56,col);
+  $('heroSpark').innerHTML=spark(cum,200,38,col);
+  var fs=P.from.getTime()/1000,ts=addDays(P.to,1).getTime()/1000,tr=D.list.filter(function(x){return x.utc>=fs&&x.utc<ts});
+  var w=0,gw=0,gl=0,sp=0;tr.forEach(function(x){if(x.net>0){w++;gw+=x.net}else gl-=x.net;sp+=sprCost(x)});
+  var pf=gl?gw/gl:(gw?Infinity:null);
+  $('heroKpi').innerHTML='<div><span>Win</span><b class="num">'+(tr.length?Math.round(w/tr.length*100)+'%':'—')+'</b></div>'+
+    '<div><span>Trades</span><b class="num">'+(tr.length?tr.length.toLocaleString():'—')+'</b></div>'+
+    '<div><span>PF</span><b class="num '+(pf==null?'':pf>=1?'pos':'neg')+'">'+(pf==null?'—':pf===Infinity?'∞':pf.toFixed(2))+'</b></div>'+
+    '<div><span>Spread</span><b class="num '+(sp?'neg':'')+'">'+(sp?short(-sp):'—')+'</b></div>';
+  var bk=null,wk=null;for(var dd in D.days){if(dd<f||dd>t)continue;var v=D.days[dd].pnl;if(bk==null||v>D.days[bk].pnl)bk=dd;if(wk==null||v<D.days[wk].pnl)wk=dd}
+  var dl=function(k){return new Date(k+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'})};
+  $('heroBW').innerHTML=bk?('<button data-d="'+bk+'"><span>Best</span><b class="num '+cls(D.days[bk].pnl)+'">'+short(D.days[bk].pnl)+'</b><span>'+dl(bk)+'</span></button>'+
+    (wk!==bk?'<button data-d="'+wk+'"><span>Worst</span><b class="num '+cls(D.days[wk].pnl)+'">'+short(D.days[wk].pnl)+'</b><span>'+dl(wk)+'</span></button>':'')):'';
+  var dep=0,wd=0;D.all.forEach(function(x){if(x.utc<fs||x.utc>=ts)return;if(x.side==='DEP')dep+=x.net;else if(x.side==='WD')wd-=x.net});
+  $('heroIO').innerHTML=dep||wd?'Deposited <b style="color:var(--text)">'+money(dep)+'</b> · Withdrawn <b style="color:var(--text)">'+money(wd)+'</b>':'';
   var a=account();
   if(!a){$('aBal').textContent=$('aEq').textContent=$('aFl').textContent='—';$('flBox').classList.remove('alert');return}
   $('aBal').textContent=money(a.balance);$('aEq').textContent=money(a.equity);
